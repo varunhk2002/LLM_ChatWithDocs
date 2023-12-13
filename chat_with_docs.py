@@ -2,6 +2,9 @@ import streamlit as st
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 import os
+from langchain.agents import create_pandas_dataframe_agent
+import pandas as pd
+from langchain.chat_models import ChatOpenAI
 
 
 def load_document(file):
@@ -11,19 +14,23 @@ def load_document(file):
         from langchain.document_loaders import PyPDFLoader
         print(f'Loading {file}')
         loader = PyPDFLoader(file)
+        data = loader.load()
     elif extention == '.docx':
         from langchain.document_loaders import Docx2txtLoader
         print(f'Loading {file}')
         loader = Docx2txtLoader(file)
+        data = loader.load()
     elif extention == '.txt':
         from langchain.document_loaders import TextLoader
         print(f'Loading {file}')
         loader = TextLoader(file)
+        data = loader.load()
+    elif extention == '.csv':
+        data = 'csv'
     else:
         print('Document not supported')
         return None
     
-    data = loader.load()
     return data
     
 
@@ -66,12 +73,14 @@ if __name__ == "__main__":
     from dotenv import load_dotenv, find_dotenv
     load_dotenv(find_dotenv(), override=True)
 
+    if_csv = 0
+
     st.image('img.jpg')
     st.subheader('LLM Question answering application')
     with st.sidebar:
-        api_key = st.text_input('OpenAI API Key:', type='password')
-        if api_key:
-            os.environ['OPENAI_API_KEY'] = api_key
+        # api_key = st.text_input('OpenAI API Key:', type='password')
+        # if api_key:
+        #     os.environ['OPENAI_API_KEY'] = api_key
         
         uploaded_file = st.file_uploader('Upload a file:', type=['pdf', 'docx', 'txt'])
         chunk_size = st.number_input('Chunk size: ', min_value=100, max_value=2048, value=512, on_change=clear_history)
